@@ -24,8 +24,8 @@ var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 func run() (int, error) {
 	A := 1.0
 	B := 1.0
-	var err error
 
+	var err error
 	for {
 		width, height, err = terminal.GetSize(int(os.Stdin.Fd()))
 		if err != nil {
@@ -50,9 +50,11 @@ func renderFrame(A, B float64) {
 	sinA := math.Sin(A)
 	cosB := math.Cos(B)
 	sinB := math.Sin(B)
+	offX := float64(width) * 0.5
+	offY := float64(height) * 0.5
 
-	output := make([][]rune, height)
-	zBuffer := make([][]float64, height)
+	output := make([][]rune, height-1)
+	zBuffer := make([][]float64, height-1)
 	for x := range output {
 		zBuffer[x] = make([]float64, width)
 		output[x] = make([]rune, 0, width)
@@ -89,8 +91,8 @@ func renderFrame(A, B float64) {
 
 			// x and y projection.  note that y is negated here, because y
 			// goes up in 3D space but down on 2D displays.
-			xp := int(float64(width)*0.5 + K1*ooz*x*ratio)
-			yp := int(float64(height)*0.5 - K1*ooz*y)
+			xp := int(offX + K1*ooz*x*ratio + offX*sinA)
+			yp := int(offY - K1*ooz*y + offY*cosB)
 
 			// calculate luminance.  ugly, but correct.
 			L := cosPhi*cosTheta*sinB - cosA*cosTheta*sinPhi -
@@ -98,7 +100,7 @@ func renderFrame(A, B float64) {
 
 			// L ranges from -sqrt(2) to +sqrt(2).  If it's < 0, the surface
 			// is pointing away from us, so we won't bother trying to plot it.
-			if L > 0 && yp >= 0 && xp >= 0 && xp < width && yp < height {
+			if L > 0 && yp >= 0 && xp >= 0 && xp < width && yp < height-1 {
 				if ooz > zBuffer[yp][xp] {
 					zBuffer[yp][xp] = ooz
 					luminanceIdx := int(L * 8)
