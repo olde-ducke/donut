@@ -21,7 +21,7 @@ var target time.Duration
 var debug bool
 var frameTime, renderTime, displayTime, getSizeTime time.Duration
 
-var chars = []byte{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
+var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 
 func run() (int, error) {
 	// hide cursor
@@ -69,7 +69,7 @@ func run() (int, error) {
 		case sig := <-sigTerm:
 			return 1, fmt.Errorf("%v", sig)
 		default:
-			time.Sleep(target - getSizeTime - renderTime - displayTime - 100*time.Microsecond)
+			time.Sleep(target - getSizeTime - renderTime - displayTime - 500*time.Microsecond)
 		}
 
 		frameTime = time.Since(start)
@@ -78,7 +78,7 @@ func run() (int, error) {
 	return 0, nil
 }
 
-func renderFrame(A, B float64) [][]byte {
+func renderFrame(A, B float64) [][]rune {
 	// precompute sines and cosines of A and B
 	cosA := math.Cos(A)
 	sinA := math.Sin(A)
@@ -87,11 +87,11 @@ func renderFrame(A, B float64) [][]byte {
 	offX := float64(width) * 0.5
 	offY := float64(height) * 0.5
 
-	output := make([][]byte, height)
+	output := make([][]rune, height)
 	zBuffer := make([][]float64, height)
 	for x := range output {
 		zBuffer[x] = make([]float64, width)
-		output[x] = make([]byte, 0, width)
+		output[x] = make([]rune, 0, width)
 		for y := 0; y < width; y++ {
 			output[x] = append(output[x], ' ')
 		}
@@ -150,7 +150,7 @@ func renderFrame(A, B float64) [][]byte {
 	return output
 }
 
-func displayFrame(output [][]byte) {
+func displayFrame(output [][]rune) {
 	// now, dump output[] to the screen.
 	// bring cursor to "home" location, in just about any currently-used
 	// terminal emulation mode
@@ -160,7 +160,7 @@ func displayFrame(output [][]byte) {
 	}
 }
 
-func addDebugInfo(frame [][]byte) {
+func addDebugInfo(frame [][]rune) {
 	var decoration string
 	if frameTime > target {
 		decoration = "\x1b[31;1m"
@@ -181,7 +181,7 @@ func addDebugInfo(frame [][]byte) {
 				break
 			}
 
-			frame[j][x] = byte(r)
+			frame[j][x] = r
 		}
 		i++
 	}
