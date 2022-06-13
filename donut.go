@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"math"
@@ -39,8 +38,8 @@ func run() (int, error) {
 	var err error
 	for {
 		select {
-		case <-sigTerm:
-			return 1, errors.New("terminated")
+		case sig := <-sigTerm:
+			return 1, fmt.Errorf("%v", sig)
 		default:
 			time.Sleep(33 * time.Millisecond)
 		}
