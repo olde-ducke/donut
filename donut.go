@@ -1,9 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -29,17 +32,21 @@ func run() (int, error) {
 
 	// get terminal descriptor
 	descriptor := int(os.Stdin.Fd())
-
-	state, err := terminal.MakeRaw(descriptor)
-	if err != nil {
-		return 1, err
-	}
-	defer terminal.Restore(descriptor, state)
+	sigTerm := make(chan os.Signal, 1)
+	signal.Notify(sigTerm, syscall.SIGTERM, syscall.SIGINT)
 
 	A := 1.0
 	B := 1.0
 
+	var err error
 	for {
+		select {
+		case <-sigTerm:
+			return 3, errors.New("terminated")
+		default:
+			time.Sleep(33 * time.Millisecond)
+		}
+
 		width, height, err = terminal.GetSize(descriptor)
 		if err != nil {
 			return 2, err
@@ -51,7 +58,6 @@ func run() (int, error) {
 		A += thetaSpacing
 		B += phiSpacing
 
-		time.Sleep(33 * time.Millisecond)
 	}
 
 	return 0, nil
