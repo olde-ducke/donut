@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"math"
 	"os"
@@ -14,12 +15,10 @@ import (
 
 const thetaSpacing float64 = 0.07
 const phiSpacing float64 = 0.02
-const R1 float64 = 1.0
-const R2 float64 = 2.0
-const K2 float64 = 5.0
 
-var K1 float64
+var R1, R2, K1, K2 float64
 var width, height int
+var debug bool
 
 var ratio = 2.0
 var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
@@ -55,6 +54,7 @@ func run() (int, error) {
 		K1 = float64(height) * K2 * 3 / (8 * (R1 + R2))
 
 		renderFrame(A, B)
+
 		A += thetaSpacing
 		B += phiSpacing
 
@@ -132,7 +132,6 @@ func renderFrame(A, B float64) {
 			}
 		}
 	}
-
 	// now, dump output[] to the screen.
 	// bring cursor to "home" location, in just about any currently-used
 	// terminal emulation mode
@@ -143,11 +142,28 @@ func renderFrame(A, B float64) {
 }
 
 func main() {
+	flag.Usage = func() {
+		fmt.Printf(`
+draws spinning 3D donut in ascii
+
+usage: %s [<arguments>]
+
+arguments:
+  --r1     - TBD                      (default: 1.0)
+  --r2     - TBD                      (default: 2.0)
+  --k2     - distance from the viewer (default: 5.0)
+  --debug  - TBD                      (default: false)
+`, os.Args[0])
+	}
+	flag.Float64Var(&R1, "r1", 1.0, "")
+	flag.Float64Var(&R2, "r2", 2.0, "")
+	flag.Float64Var(&K2, "k2", 5.0, "")
+	flag.BoolVar(&debug, "debug", false, "")
+	flag.Parse()
+
 	n, err := run()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(n)
 	}
-
-	fmt.Println(n)
 }
