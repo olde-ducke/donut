@@ -40,7 +40,7 @@ func run() (int, error) {
 	for {
 		select {
 		case <-sigTerm:
-			return 3, errors.New("terminated")
+			return 1, errors.New("terminated")
 		default:
 			time.Sleep(33 * time.Millisecond)
 		}
