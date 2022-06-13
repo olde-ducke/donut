@@ -22,14 +22,27 @@ var ratio = 2.0
 var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 
 func run() (int, error) {
+	// hide cursor
+	fmt.Print("\033[?25l")
+	// unhide on exit
+	defer fmt.Print("\033[?25h")
+
+	// get terminal descriptor
+	descriptor := int(os.Stdin.Fd())
+
+	state, err := terminal.MakeRaw(descriptor)
+	if err != nil {
+		return 1, err
+	}
+	defer terminal.Restore(descriptor, state)
+
 	A := 1.0
 	B := 1.0
 
-	var err error
 	for {
-		width, height, err = terminal.GetSize(int(os.Stdin.Fd()))
+		width, height, err = terminal.GetSize(descriptor)
 		if err != nil {
-			return 1, err
+			return 2, err
 		}
 
 		K1 = float64(height) * K2 * 3 / (8 * (R1 + R2))
@@ -53,8 +66,8 @@ func renderFrame(A, B float64) {
 	offX := float64(width) * 0.5
 	offY := float64(height) * 0.5
 
-	output := make([][]rune, height-1)
-	zBuffer := make([][]float64, height-1)
+	output := make([][]rune, height)
+	zBuffer := make([][]float64, height)
 	for x := range output {
 		zBuffer[x] = make([]float64, width)
 		output[x] = make([]rune, 0, width)
@@ -119,7 +132,7 @@ func renderFrame(A, B float64) {
 	// terminal emulation mode
 	fmt.Print("\x1b[H")
 	for j := range output {
-		fmt.Println(string(output[j]))
+		fmt.Print(string(output[j]))
 	}
 }
 
