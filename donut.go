@@ -17,7 +17,9 @@ const phiSpacing float64 = 0.02
 
 var R1, R2, K1, K2, ratio float64
 var width, height int
+var target time.Duration
 var debug bool
+var frameTime, renderTime, displayTime, getSizeTime time.Duration
 
 var chars = []byte{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 
@@ -35,33 +37,48 @@ func run() (int, error) {
 	A := 1.0
 	B := 1.0
 
+	var start, render, display, getSize time.Time
 	var err error
 	for {
-		select {
-		case sig := <-sigTerm:
-			return 1, fmt.Errorf("%v", sig)
-		default:
-			time.Sleep(33 * time.Millisecond)
-		}
+		start = time.Now()
 
+		getSize = time.Now()
 		width, height, err = terminal.GetSize(descriptor)
 		if err != nil {
 			return 2, err
 		}
 
 		K1 = float64(height) * K2 * 3 / (8 * (R1 + R2))
+		getSizeTime = time.Since(getSize)
 
-		renderFrame(A, B)
+		render = time.Now()
+		frame := renderFrame(A, B)
+		if debug {
+			addDebugInfo(frame)
+		}
+		renderTime = time.Since(render)
+
+		display = time.Now()
+		displayFrame(frame)
+		displayTime = time.Since(display)
 
 		A += thetaSpacing
 		B += phiSpacing
 
+		select {
+		case sig := <-sigTerm:
+			return 1, fmt.Errorf("%v", sig)
+		default:
+			time.Sleep(target - getSizeTime - renderTime - displayTime - 100*time.Microsecond)
+		}
+
+		frameTime = time.Since(start)
 	}
 
 	return 0, nil
 }
 
-func renderFrame(A, B float64) {
+func renderFrame(A, B float64) [][]byte {
 	// precompute sines and cosines of A and B
 	cosA := math.Cos(A)
 	sinA := math.Sin(A)
@@ -130,6 +147,10 @@ func renderFrame(A, B float64) {
 			}
 		}
 	}
+	return output
+}
+
+func displayFrame(output [][]byte) {
 	// now, dump output[] to the screen.
 	// bring cursor to "home" location, in just about any currently-used
 	// terminal emulation mode
@@ -139,10 +160,38 @@ func renderFrame(A, B float64) {
 	}
 }
 
+func addDebugInfo(frame [][]byte) {
+	var decoration string
+	if frameTime > target {
+		decoration = "\x1b[31;1m"
+	} else {
+		decoration = "\x1b[32;1m"
+	}
+
+	debugInfo := []string{
+		fmt.Sprintf("last frame:    %s%s\x1b[0m", decoration, frameTime),
+		fmt.Sprintf("display time:  %s", displayTime),
+		fmt.Sprintf("render time:   %s", renderTime),
+		fmt.Sprintf("get size time: %s", getSizeTime),
+	}
+
+	for i, j := 0, len(frame)-1; i < 4 && j >= 0; j-- {
+		for x, r := range debugInfo[i] {
+			if x >= len(frame[0]) {
+				break
+			}
+
+			frame[j][x] = byte(r)
+		}
+		i++
+	}
+}
+
 func main() {
 	flag.Usage = func() {
 		fmt.Printf(`
 draws spinning 3D donut in ascii
+press <Ctrl>+C to exit
 
 usage: %s [<arguments>]
 
@@ -152,12 +201,14 @@ arguments:
   --k2     - distance from the viewer default: 5.0
   --ratio  - height to width ratio    default: 2.0
   --debug  - TBD                      default: false
+  --target - TBD                      default: 33.333ms
 `, os.Args[0])
 	}
 	flag.Float64Var(&R1, "r1", 1.0, "")
 	flag.Float64Var(&R2, "r2", 2.0, "")
 	flag.Float64Var(&K2, "k2", 5.0, "")
 	flag.Float64Var(&ratio, "ratio", 2.0, "")
+	flag.DurationVar(&target, "target", 33333*time.Microsecond, "")
 	flag.BoolVar(&debug, "debug", false, "")
 	flag.Parse()
 
