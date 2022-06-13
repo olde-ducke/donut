@@ -89,8 +89,8 @@ func renderFrame(A, B float64) {
 
 			// x and y projection.  note that y is negated here, because y
 			// goes up in 3D space but down on 2D displays.
-			xp := int(float64(width)/2.0 + K1*ooz*x*ratio)
-			yp := int(float64(height)/2.0 - K1*ooz*y)
+			xp := int(float64(width)*0.5 + K1*ooz*x*ratio)
+			yp := int(float64(height)*0.5 - K1*ooz*y)
 
 			// calculate luminance.  ugly, but correct.
 			L := cosPhi*cosTheta*sinB - cosA*cosTheta*sinPhi -
