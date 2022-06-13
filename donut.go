@@ -19,7 +19,7 @@ var R1, R2, K1, K2, ratio float64
 var width, height int
 var debug bool
 
-var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
+var chars = []byte{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 
 func run() (int, error) {
 	// hide cursor
@@ -70,11 +70,11 @@ func renderFrame(A, B float64) {
 	offX := float64(width) * 0.5
 	offY := float64(height) * 0.5
 
-	output := make([][]rune, height)
+	output := make([][]byte, height)
 	zBuffer := make([][]float64, height)
 	for x := range output {
 		zBuffer[x] = make([]float64, width)
-		output[x] = make([]rune, 0, width)
+		output[x] = make([]byte, 0, width)
 		for y := 0; y < width; y++ {
 			output[x] = append(output[x], ' ')
 		}
