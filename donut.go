@@ -16,11 +16,10 @@ import (
 const thetaSpacing float64 = 0.07
 const phiSpacing float64 = 0.02
 
-var R1, R2, K1, K2 float64
+var R1, R2, K1, K2, ratio float64
 var width, height int
 var debug bool
 
-var ratio = 2.0
 var chars = []rune{'.', ',', '-', '~', ':', ';', '=', '!', '*', '#', '$', '@'}
 
 func run() (int, error) {
@@ -149,15 +148,17 @@ draws spinning 3D donut in ascii
 usage: %s [<arguments>]
 
 arguments:
-  --r1     - TBD                      (default: 1.0)
-  --r2     - TBD                      (default: 2.0)
-  --k2     - distance from the viewer (default: 5.0)
-  --debug  - TBD                      (default: false)
+  --r1     - TBD                      default: 1.0
+  --r2     - TBD                      default: 2.0
+  --k2     - distance from the viewer default: 5.0
+  --ratio  - height to width ratio    default: 2.0
+  --debug  - TBD                      default: false
 `, os.Args[0])
 	}
 	flag.Float64Var(&R1, "r1", 1.0, "")
 	flag.Float64Var(&R2, "r2", 2.0, "")
 	flag.Float64Var(&K2, "k2", 5.0, "")
+	flag.Float64Var(&ratio, "ratio", 2.0, "")
 	flag.BoolVar(&debug, "debug", false, "")
 	flag.Parse()
 
