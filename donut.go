@@ -196,12 +196,12 @@ press <Ctrl>+C to exit
 usage: %s [<arguments>]
 
 arguments:
-  --r1     - TBD                      default: 1.0
-  --r2     - TBD                      default: 2.0
-  --k2     - distance from the viewer default: 5.0
-  --ratio  - height to width ratio    default: 2.0
-  --debug  - TBD                      default: false
-  --target - TBD                      default: 33.333ms
+  --r1     - TBD                        default: 1.0
+  --r2     - TBD                        default: 2.0
+  --k2     - distance from the viewer   default: 5.0
+  --ratio  - height to width ratio      default: 2.0
+  --target - target frame time          default: 33.333ms
+  --debug  - print debug info to output
 `, os.Args[0])
 	}
 	flag.Float64Var(&R1, "r1", 1.0, "")
